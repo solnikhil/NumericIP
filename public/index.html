@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain IP and DNS Lookup</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .made-by {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px; /* Adjust font size */
+            color: #ffffff; /* Text color */
+            opacity: 0.8; /* Slightly transparent for a subtle look */
+            font-weight: normal; /* Normal font weight */
+            white-space: nowrap; /* Prevent text wrapping */
+            overflow: hidden; /* Hide overflow text */
+            border-right: 2px solid; /* Cursor effect */
+            animation: blink 0.7s infinite; /* Blinking cursor */
+        }
+
+        @keyframes blink {
+            50% {
+                border-color: transparent; /* Cursor blinks */
+            }
+        }
+
+        h1 {
+            margin-top: 60px; /* Adjust margin to avoid overlap */
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        input {
+            padding: 15px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            width: 300px;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4caf50;
+            color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #282828;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        pre {
+            background-color: #333333;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .record {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #3c3c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="made-by" id="typingText"></div>
+    <h1>Domain IP and DNS Lookup</h1>
+    <input type="text" id="domain" placeholder="Enter domain (e.g., google.com)" />
+    <button onclick="lookupDNS()">Get DNS Info</button>
+
+    <div id="result"></div>
+
+    <script>
+        // Typing effect function
+        function typeText(element, text, index) {
+            if (index < text.length) {
+                element.innerHTML += text.charAt(index);
+                index++;
+                setTimeout(() => typeText(element, text, index), 100); // Adjust typing speed here
+            }
+        }
+
+        // Start typing effect
+        window.onload = function() {
+            const typingElement = document.getElementById('typingText');
+            const text = 'Made by iNinjaOP';
+            typeText(typingElement, text, 0);
+        };
+
+        async function lookupDNS() {
+            const domain = document.getElementById('domain').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!domain) {
+                resultDiv.innerHTML = '<p>Please enter a valid domain.</p>';
+                return;
+            }
+
+            try {
+                // Using Google's Public DNS API to get the numeric IP address
+                const dnsResponse = await fetch(`https://dns.google/resolve?name=${domain}&type=A`);
+                const dnsData = await dnsResponse.json();
+
+                // Clear previous results
+                resultDiv.innerHTML = '';
+
+                if (dnsData.Status === 0) {
+                    const ipAddress = dnsData.Answer[0].data;
+                    resultDiv.innerHTML += `<p><strong>IP Address:</strong> ${ipAddress}</p>`;
+                    
+                    // Get DNS records (CNAME, MX, etc.)
+                    const recordTypes = ['CNAME', 'MX', 'NS', 'TXT'];
+                    for (const type of recordTypes) {
+                        const recordResponse = await fetch(`https://dns.google/resolve?name=${domain}&type=${type}`);
+                        const recordData = await recordResponse.json();
+
+                        if (recordData.Status === 0 && recordData.Answer) {
+                            resultDiv.innerHTML += `<div class="record"><strong>${type} Records:</strong>`;
+                            recordData.Answer.forEach(record => {
+                                resultDiv.innerHTML += `<p>${record.data}</p>`;
+                            });
+                            resultDiv.innerHTML += '</div>';
+                        }
+                    }
+                } else {
+                    resultDiv.innerHTML = `<p>Error: Unable to resolve the domain's IP address.</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
