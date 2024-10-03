@@ -48,14 +48,29 @@
             text-align: center;
         }
 
+        .input-container {
+            position: relative; /* For positioning the close button */
+            width: 300px; /* Fixed width for consistency */
+        }
+
         input {
             padding: 15px;
             font-size: 16px;
             margin-bottom: 10px;
-            width: 300px;
+            width: 100%; /* Full width of the container */
             border: none;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-btn {
+            position: absolute;
+            right: 10px;
+            top: 15px;
+            cursor: pointer;
+            color: #ffffff;
+            font-size: 20px; /* Adjust font size */
+            display: none; /* Initially hidden */
         }
 
         button {
@@ -109,7 +124,10 @@
 <body>
     <div class="made-by" id="typingText"></div>
     <h1>Domain IP and DNS Lookup</h1>
-    <input type="text" id="domain" placeholder="Enter domain (e.g., google.com)" />
+    <div class="input-container">
+        <input type="text" id="domain" placeholder="Enter domain (e.g., google.com)" oninput="toggleCloseButton()" />
+        <span class="close-btn" id="closeBtn" onclick="clearInput()">✖</span>
+    </div>
     <button onclick="lookupDNS()">Get DNS Info</button>
 
     <div id="result"></div>
@@ -130,6 +148,20 @@
             const text = 'Made by iNinjaOP';
             typeText(typingElement, text, 0);
         };
+
+        function toggleCloseButton() {
+            const input = document.getElementById('domain');
+            const closeBtn = document.getElementById('closeBtn');
+            closeBtn.style.display = input.value ? 'block' : 'none'; // Show close button if input has text
+        }
+
+        function clearInput() {
+            const input = document.getElementById('domain');
+            const resultDiv = document.getElementById('result');
+            input.value = ''; // Clear input field
+            resultDiv.innerHTML = ''; // Clear results
+            toggleCloseButton(); // Update close button visibility
+        }
 
         async function lookupDNS() {
             const domain = document.getElementById('domain').value;
